@@ -1,3 +1,5 @@
+import pathlib
+from datetime import datetime
 import pandas as pd
 import EDHElo_secrets
 
@@ -8,6 +10,7 @@ url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sh
 players = []
 podSizes = {"threes": 0, "fours": 0, "fives": 0, "total": 0}
 pods = {}
+gameDate = datetime.now().strftime("%Y%m%dT%H%M%S")
 
 
 def main():
@@ -27,6 +30,22 @@ def main():
         print(key)
         print(pods[key])
     print("#" * 30)
+
+    # write pods to file
+    with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_pods.txt"), 'a') as f:
+        f.write("\n" + gameDate + " " + str(podSizes))
+        for key in pods.keys():
+            f.write("\n" + "#" * 30)
+            f.write("\n" + key)
+            f.write(pods[key].to_string())
+        f.write("\n" + "#" * 30)
+
+    # write log file
+    with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_db.txt"), 'a') as f:
+        f.write("\n" + gameDate + " " + str(podSizes) + "\n")
+        for key in pods.keys():
+            f.write(pods[key].to_string(index=False, header=False))
+            f.write("\n")
 
 
 def fetchPlayerData():
