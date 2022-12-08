@@ -20,7 +20,10 @@ match len(sys.argv):
         nArgs = [int(x) for x in str(sys.argv[1:]).replace(
             "[", "").replace("]", "").replace("'", "").replace(",", " ").split()]
 
-melo = MultiElo()
+# set Elo K-factor; multielo uses a default of 32
+# higher K-factor makes the point swing larger, which makes the ratings change "faster"
+KFACTOR = 64
+melo = MultiElo(k_value=KFACTOR)
 
 # the first score is for the winning player, the rest of the players tie for second
 wArr = [1]
