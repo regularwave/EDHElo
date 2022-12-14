@@ -1,11 +1,9 @@
 import pathlib
 from datetime import datetime
 import pandas as pd
-import EDHElo_secrets
+from EDHElo_secrets import SHEET_ID, SHEET_NAME
 
 # get Google Sheets secrets from EDHElo_secrets.py
-SHEET_ID = EDHElo_secrets.SHEET_ID
-SHEET_NAME = EDHElo_secrets.SHEET_NAME
 url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}'
 players = []
 podSizes = {"threes": 0, "fours": 0, "fives": 0, "total": 0}
@@ -81,16 +79,13 @@ def genPodAssignments(players):
         podName = "Pod " + str(p + 1)
         match p:
             case _ if p < podSizes["threes"]:
-                pods[podName] = pd.DataFrame(
-                    players.iloc[indexPos:indexPos + 3])
+                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 3])
                 indexPos += 3
             case _ if (p >= podSizes["threes"]) & (p < (podSizes["threes"] + podSizes["fours"])):
-                pods[podName] = pd.DataFrame(
-                    players.iloc[indexPos:indexPos + 4])
+                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 4])
                 indexPos += 4
             case _ if (p >= (podSizes["threes"] + podSizes["fours"])):
-                pods[podName] = pd.DataFrame(
-                    players.iloc[indexPos:indexPos + 5])
+                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 5])
             case _:
                 print("zuh?")
 
