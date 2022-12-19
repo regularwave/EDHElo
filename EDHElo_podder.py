@@ -13,8 +13,8 @@ gameDate = datetime.now().strftime("%Y%m%dT%H%M%S")
 
 def main():
     # fetch player data from Google Sheet, randomize, then sort by rating
-    # sheet is two columns, "Player Name" and "Rating"
-    players = fetchPlayerData().sample(frac=1).sort_values(by='Rating', ascending=True)
+    # sheet is two columns, "Player Name" and "Bracket"
+    players = fetchPlayerData().sample(frac=1).sort_values(by='Bracket', ascending=True)
 
     # determine number and size of pods
     genPodSizes(players)
@@ -31,7 +31,7 @@ def main():
 
     # write pods to file
     with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_pods.txt"), 'a') as f:
-        f.write("\n" + gameDate + " " + str(podSizes))
+        f.write(gameDate + " " + str(podSizes))
         for key in pods.keys():
             f.write("\n" + "#" * 30)
             f.write("\n" + key)
@@ -40,10 +40,12 @@ def main():
 
     # write log file
     with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_db.txt"), 'a') as f:
-        f.write("\n" + gameDate + " " + str(podSizes) + "\n")
+        f.write(gameDate + " " + str(podSizes) + "\n")
         for key in pods.keys():
             f.write(pods[key].to_string(index=False, header=False))
             f.write("\n")
+
+    prettyPrintPods(pods)
 
 
 def fetchPlayerData():
@@ -88,6 +90,24 @@ def genPodAssignments(players):
                 pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 5])
             case _:
                 print("zuh?")
+
+
+def prettyPrintPods(pods):
+    with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_prettypods.html"), 'a') as f:
+        f.write(
+            "<!DOCTYPE html><html><head><meta name=\"viewport\"content=\"width=device-width,initial-scale=1\"><style>*{box-sizing:border-box;padding:2px;gap:2px;font-size:4vw;font-family:Sans-Serif}.row{display:flex;}.column{flex:50%;padding:10px;border:1px solid black;border-radius:10px 30px}</style></head><body><h2>Commander Pods " + gameDate.split("T")[0] + "</h2>")
+        for i, (key, value) in enumerate(pods.items()):
+            if i % 2 == 0:
+                f.write("<div class=\"row\">")
+            f.write("<div class=\"column\">")
+            f.write("<strong>" + key + "</strong>")
+            f.write("<br>")
+            f.write("<br>".join(''.join([i for i in value.to_string(
+                index=False, header=False) if not i.isdigit()]).split("\n")))
+            f.write("</div>")
+            if i % 2 == 1:
+                f.write("</div>")
+        f.write("</body></html>")
 
 
 main()
