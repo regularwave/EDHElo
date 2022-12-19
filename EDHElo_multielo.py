@@ -22,7 +22,7 @@ match len(sys.argv):
 
 # set Elo K-factor; multielo uses a default of 32
 # higher K-factor makes the point swing larger, which makes the ratings change "faster"
-KFACTOR = 64
+KFACTOR = 48
 melo = MultiElo(k_value=KFACTOR)
 
 # the first score is for the winning player, the rest of the players tie for second
