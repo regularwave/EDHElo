@@ -67,6 +67,13 @@ def genPodSizes(players):
             podSizes["threes"] = int(numPlayers / 3)
         case 5:
             podSizes["fives"] = 1
+        case _ if numPlayers > 28:
+            # an example of a space-based limitation
+            # for example, this store has enough space for seven four-person tables
+            # after 7 tables are full (28 players) instead of recalculating for threes and fours,
+            # start moving players into fives and fours
+            podSizes["fives"] = numPlayers - 28
+            podSizes["fours"] = 7 - podSizes["fives"]
         case _:
             podSizes["threes"] = 4 - numPlayers % 4
             podSizes["fours"] = int((numPlayers - podSizes["threes"] * 3) / 4)
@@ -77,33 +84,37 @@ def genPodSizes(players):
 def genPodAssignments(players):
     # generates and fills keys for pods{}
     indexPos = 0
-    for p in range(podSizes["total"]):
-        podName = "Pod " + str(p + 1)
-        match p:
-            case _ if p < podSizes["threes"]:
-                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 3])
-                indexPos += 3
-            case _ if (p >= podSizes["threes"]) & (p < (podSizes["threes"] + podSizes["fours"])):
-                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 4])
-                indexPos += 4
-            case _ if (p >= (podSizes["threes"] + podSizes["fours"])):
-                pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 5])
-            case _:
-                print("zuh?")
+    podNumber = 1
+
+    for _ in range(podSizes["fives"]):
+        podName = "Pod " + str(podNumber)
+        pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 5])
+        podNumber += 1
+        indexPos += 5
+
+    for _ in range(podSizes["threes"]):
+        podName = "Pod " + str(podNumber)
+        pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 3])
+        podNumber += 1
+        indexPos += 3
+
+    for _ in range(podSizes["fours"]):
+        podName = "Pod " + str(podNumber)
+        pods[podName] = pd.DataFrame(players.iloc[indexPos:indexPos + 4])
+        podNumber += 1
+        indexPos += 4
 
 
 def prettyPrintPods(pods):
     with open(pathlib.Path(__file__).parent / 'logs' / (gameDate + "_prettypods.html"), 'a') as f:
-        f.write(
-            "<!DOCTYPE html><html><head><meta name=\"viewport\"content=\"width=device-width,initial-scale=1\"><style>*{box-sizing:border-box;padding:2px;gap:2px;font-size:4vw;font-family:Sans-Serif}.row{display:flex;}.column{flex:50%;padding:10px;border:1px solid black;border-radius:10px 30px}</style></head><body><h2>Commander Pods " + gameDate.split("T")[0] + "</h2>")
+        f.write("<!DOCTYPE html><html><head><meta name=\"viewport\"content=\"width=device-width,initial-scale=1\"><style>*{box-sizing:border-box;padding:2px;gap:2px;font-size:4vw;font-family:Sans-Serif}.row{display:flex;}.column{flex:50%;padding:10px;border:1px solid black;border-radius:10px 30px}</style></head><body><h2>Commander Pods " + gameDate.split("T")[0] + "</h2>")
         for i, (key, value) in enumerate(pods.items()):
             if i % 2 == 0:
                 f.write("<div class=\"row\">")
             f.write("<div class=\"column\">")
             f.write("<strong>" + key + "</strong>")
-            f.write("<br>")
-            f.write("<br>".join(''.join([i for i in value.to_string(
-                index=False, header=False) if not i.isdigit()]).split("\n")))
+            f.write("<br>&#x25a2; ")
+            f.write("<br>&#x25a2; ".join(''.join([i for i in value.to_string(index=False, header=False) if not i.isdigit()]).split("\n")))
             f.write("</div>")
             if i % 2 == 1:
                 f.write("</div>")
